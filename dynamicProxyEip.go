@@ -146,22 +146,27 @@ func main() {
 
 	if regionId == "" {
 		log.Println("环境变量 REGION_ID 不能为空！")
+		panic(1)
 		return
 	}
 	if accessKeyId == "" {
 		log.Println("环境变量 ACCESS_KEY_ID 不能为空！")
+		panic(1)
 		return
 	}
 	if accessKeySecret == "" {
 		log.Println("环境变量 ACCESS_KEY_SECRET 不能为空！")
+		panic(1)
 		return
 	}
 	if instanceId == "" {
 		log.Println("环境变量 INSTANCE_ID 不能为空！")
+		panic(1)
 		return
 	}
 	if check_port == "" {
 		log.Println("环境变量 CHECK_PORT 不能为空！")
+		panic(1)
 		return
 	}
 	client, err := vpc.NewClientWithAccessKey(regionId, accessKeyId, accessKeySecret)
