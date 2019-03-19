@@ -1,6 +1,6 @@
 FROM golang:1.12-alpine3.9
 
-COPY ./* /DynamicProxyEip/*
+COPY ./ /DynamicProxyEip/
 RUN go get -v -u github.com/golang/dep/cmd/dep
 
 WORKDIR /DynamicProxyEip
