@@ -62,29 +62,6 @@
   version = "v1.2.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:fd18b3e9b2ec7f9b5d268e94346dbcc425f0455e207f4d688597cd86001543b7"
-  name = "github.com/sparrc/go-ping"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "ef3ab45e41b017889941ea5bb796dd502d2b5a1b"
-
-[[projects]]
-  branch = "master"
-  digest = "1:9aaf9de1ec506506acf7c2dec56835aaed31d8a5423695987488728a2eaaff8b"
-  name = "golang.org/x/net"
-  packages = [
-    "bpf",
-    "icmp",
-    "internal/iana",
-    "internal/socket",
-    "ipv4",
-    "ipv6",
-  ]
-  pruneopts = "UT"
-  revision = "d196dffd7c2beec1957382065df08bcc353b9706"
-
-[[projects]]
   digest = "1:d37c61a335d13bc49b3f90e9e13c8686e4548839b69c58549e727afb2245c454"
   name = "gopkg.in/ini.v1"
   packages = ["."]
@@ -95,9 +72,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/aliyun/alibaba-cloud-sdk-go/services/vpc",
-    "github.com/sparrc/go-ping",
-  ]
+  input-imports = ["github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"]
   solver-name = "gps-cdcl"
   solver-version = 1

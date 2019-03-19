@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
-	"github.com/sparrc/go-ping"
 	"log"
 	"net"
 	"os"
@@ -19,18 +18,6 @@ func checkTcpPort(address string) bool {
 	defer conn.Close()
 	return true
 
-}
-// ping ip check
-func pingIp(address string) float64 {
-	pinger, err := ping.NewPinger(address)
-	if err != nil {
-		panic(err)
-	}
-
-	pinger.Count = 3
-	pinger.Run() // blocks until finished
-	stats := pinger.Statistics().PacketLoss // get send/receive/rtt stats
-	return stats
 }
 //根据实例id获取Eip
 func getEip(err error, client *vpc.Client, instanceId string)  (string,string) {
@@ -189,7 +176,7 @@ func main() {
 
 		if !checkTcpPort(eip+":"+check_port) {
 			log.Println("连接", eip ,check_port,"失败！")
-			fmt.Println("Ping 丢包率: ", pingIp(eip))
+			// 需要开启容器特权，所以注释ping功能
 			//不能连接tcp端口，则解绑eip,并释放
 			err = unassociateEip(allocationId, instanceId, client)
 			if err != nil {
