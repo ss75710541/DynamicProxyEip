@@ -37,7 +37,7 @@ spec:
         spec:
           containers:
             - name: dynamic-proxy-eip
-              image: ss75710541/dynamic-proxy-eip:latest
+              image: ss75710541/dynamic-proxy-eip:v0.5
               env:
                 - name: REGION_ID
                   value: "<regionId>"
