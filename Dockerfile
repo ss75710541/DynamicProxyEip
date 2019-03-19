@@ -11,6 +11,6 @@ RUN GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o dynamicPro
 
 FROM alpine:3.9
 
-COPY --from=0 /DynamicProxyEip/dynamicProxyEip /
+COPY --from=0 /go/src/github.com/DynamicProxyEip/dynamicProxyEip /
 
 ENTRYPOINT ["/dynamicProxyEip"]
