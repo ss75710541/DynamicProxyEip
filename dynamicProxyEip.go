@@ -213,6 +213,7 @@ func main() {
 
 		if eip == "" {
 			fmt.Print("申请分配Eip错误。")
+			panic(1)
 			return
 		}
 		fmt.Printf("申请分配Eip: %s\n", eip)
@@ -222,6 +223,7 @@ func main() {
 	err = associateEip(allocationId, instanceId, client)
 	if err != nil {
 		fmt.Printf("绑定Eip错误： %s\n",err.Error())
+		panic(1)
 		return
 	}
 	fmt.Printf("绑定 eip %s 到实例 %s\n", eip, instanceId)
