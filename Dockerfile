@@ -11,6 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflag
 
 FROM alpine:3.9
 
+RUN apk add --no-cache ca-certificates
+
 COPY --from=0 /go/src/github.com/DynamicProxyEip/dynamicProxyEip /
 
 ENTRYPOINT ["/dynamicProxyEip"]
