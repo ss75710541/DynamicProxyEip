@@ -1,0 +1,229 @@
+package main
+
+import (
+	"fmt"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
+	"github.com/sparrc/go-ping"
+	"log"
+	"net"
+	"os"
+	"time"
+)
+// check tch port
+func checkTcpPort(address string) bool {
+	conn, err := net.DialTimeout("tcp", address, 1*time.Second)
+	if err != nil {
+		fmt.Println("could not connect to server: ", err)
+		return false
+	}
+	defer conn.Close()
+	return true
+
+}
+// ping ip check
+func pingIp(address string) float64 {
+	pinger, err := ping.NewPinger(address)
+	if err != nil {
+		panic(err)
+	}
+
+	pinger.Count = 3
+	pinger.Run() // blocks until finished
+	stats := pinger.Statistics().PacketLoss // get send/receive/rtt stats
+	return stats
+}
+//根据实例id获取Eip
+func getEip(err error, client *vpc.Client, instanceId string)  (string,string) {
+	request := vpc.CreateDescribeEipAddressesRequest()
+	request.Status = "InUse"
+	request.AssociatedInstanceId = instanceId
+	request.AssociatedInstanceType = "EcsInstance"
+	response, err := client.DescribeEipAddresses(request)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+
+	if len(response.EipAddresses.EipAddress) > 0 {
+		eip := response.EipAddresses.EipAddress[0].IpAddress
+		allocationId := response.EipAddresses.EipAddress[0].AllocationId
+		return eip,allocationId
+	}
+	return "",""
+}
+//获取可用Eip
+func getAvailableEip(err error, client *vpc.Client)  (string,string) {
+	request := vpc.CreateDescribeEipAddressesRequest()
+	request.Status = "Available"
+	response, err := client.DescribeEipAddresses(request)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+
+	if len(response.EipAddresses.EipAddress) > 0 {
+		eip := response.EipAddresses.EipAddress[0].IpAddress
+		allocationId := response.EipAddresses.EipAddress[0].AllocationId
+		fmt.Printf("获取可用Eip: %s\n", eip)
+		return eip,allocationId
+	}
+	return "",""
+}
+//解绑eip
+func unassociateEip(allocationId string, instanceId string, client *vpc.Client) error {
+	request := vpc.CreateUnassociateEipAddressRequest()
+	request.AllocationId = allocationId
+	request.InstanceId = instanceId
+	i := 0
+	for  {
+		response, err := client.UnassociateEipAddress(request)
+
+		if err != nil {
+			if i < 4 {
+				i++
+				time.Sleep(1*time.Second)
+				continue
+			}
+			fmt.Printf("解绑eip失败: %s", response)
+			return err
+		}else {
+			fmt.Printf("解绑eip成功，allocationId:  %s\n", allocationId)
+			return err
+		}
+
+	}
+
+}
+//绑定eip
+func associateEip(allocationId string, instanceId string, client *vpc.Client) error {
+	request := vpc.CreateAssociateEipAddressRequest()
+
+	request.AllocationId = allocationId
+	request.InstanceId = instanceId
+
+	i := 0
+	for {
+		response, err := client.AssociateEipAddress(request)
+		if err != nil {
+			if i < 4 {
+				i++
+				time.Sleep(1*time.Second)
+				continue
+			}
+			fmt.Printf("绑定eip失败: %s", response)
+			return err
+		}else {
+			fmt.Printf("绑定eip成功，allocationId:  %s\n", allocationId)
+			return err
+		}
+	}
+}
+//申请分配Eip
+func allocateNewEip(err error, client *vpc.Client) (string,string) {
+	request := vpc.CreateAllocateEipAddressRequest()
+	request.AutoPay = "true"
+	request.Bandwidth = "2"
+	response, err := client.AllocateEipAddress(request)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+	eip := response.EipAddress
+	allocationId := response.AllocationId
+	return eip,allocationId
+}
+// 释放Eip
+func releaseEip(allocationId string, client *vpc.Client) {
+	request := vpc.CreateReleaseEipAddressRequest()
+	request.AllocationId = allocationId
+
+	for i:=0;i<5;i++ {
+		response, err := client.ReleaseEipAddress(request)
+		if response.RequestId == ""  {
+			i++
+			time.Sleep(time.Second)
+			fmt.Printf("释放eip异常,需要重试: %s\n", err.Error())
+			continue
+		}
+		fmt.Printf("释放eip成功,allocationId:  %s\n",  allocationId)
+		return
+	}
+
+	fmt.Printf("释放eip失败,allocationId: %s", allocationId)
+}
+
+func main() {
+
+	regionId := os.Getenv("REGION_ID")
+	accessKeyId := os.Getenv("ACCESS_KEY_ID")
+	accessKeySecret := os.Getenv("ACCESS_KEY_SECRET")
+	instanceId := os.Getenv("INSTANCE_ID")
+	check_port := os.Getenv("CHECK_PORT")
+
+	if regionId == "" {
+		log.Println("环境变量 REGION_ID 不能为空！")
+		return
+	}
+	if accessKeyId == "" {
+		log.Println("环境变量 ACCESS_KEY_ID 不能为空！")
+		return
+	}
+	if accessKeySecret == "" {
+		log.Println("环境变量 ACCESS_KEY_SECRET 不能为空！")
+		return
+	}
+	if instanceId == "" {
+		log.Println("环境变量 INSTANCE_ID 不能为空！")
+		return
+	}
+	if check_port == "" {
+		log.Println("环境变量 CHECK_PORT 不能为空！")
+		return
+	}
+	client, err := vpc.NewClientWithAccessKey(regionId, accessKeyId, accessKeySecret)
+
+	eip,allocationId := getEip(err, client,instanceId)
+
+	// 判断是否绑定了eip
+	if eip != "" {
+		//绑定了eip 则检查连通性
+		fmt.Println("Eip: ", eip)
+		fmt.Println("AllocationId: ", allocationId)
+
+		if !checkTcpPort(eip+":"+check_port) {
+			log.Println("连接", eip ,check_port,"失败！")
+			fmt.Println("Ping 丢包率: ", pingIp(eip))
+			//不能连接tcp端口，则解绑eip,并释放
+			err = unassociateEip(allocationId, instanceId, client)
+			if err != nil {
+				return
+			}
+			time.Sleep(time.Second)
+			defer releaseEip(allocationId, client)
+		} else {
+			// 可以连接端口，则返回，什么也不操作
+			fmt.Printf("Eip: %s 可以正常使用。\n",eip)
+			return
+		}
+	}
+
+	// 获取可用Eip
+	eip,allocationId = getAvailableEip(err,client)
+
+	if eip == "" {
+		// 无可用Eip,申请新Eip
+		eip, allocationId = allocateNewEip(err, client)
+
+		if eip == "" {
+			fmt.Print("申请分配Eip错误。")
+			return
+		}
+		fmt.Printf("申请分配Eip: %s\n", eip)
+	}
+
+	// 绑定Eip
+	err = associateEip(allocationId, instanceId, client)
+	if err != nil {
+		fmt.Printf("绑定Eip错误： %s\n",err.Error())
+		return
+	}
+	fmt.Printf("绑定 eip %s 到实例 %s\n", eip, instanceId)
+
+}
