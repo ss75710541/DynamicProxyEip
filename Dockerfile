@@ -7,7 +7,7 @@ WORKDIR /go/src/github.com/DynamicProxyEip
 
 RUN dep ensure -v
 
-RUN GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o dynamicProxyEip
+RUN GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o dynamicProxyEip
 
 FROM alpine:3.9
 
