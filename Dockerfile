@@ -1,9 +1,10 @@
 FROM golang:1.12
 
-COPY ./ /DynamicProxyEip/
 RUN  go get -v -u github.com/golang/dep/cmd/dep
 
-WORKDIR /DynamicProxyEip
+COPY ./ /go/src/github.com/DynamicProxyEip
+WORKDIR /go/src/github.com/DynamicProxyEip
+
 RUN dep ensure -v
 
 RUN GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o dynamicProxyEip
