@@ -14,6 +14,10 @@ ACCESS_KEY_ID| 阿里云密钥id
 ACCESS_KEY_SECRET|阿里云密钥
 INSTANCE_ID|虚拟机实例id
 CHECK_PORT|检查连通性的TCP端口
+SMTP_USER|smtp用户
+SMTP_PASSWORD|smtp密码
+SMTP_HOST|smtp服务器地址
+SMTP_TO|收件箱，多个使用;隔开
 
 ## 运行命令
 
