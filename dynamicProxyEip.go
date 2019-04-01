@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DynamicProxyEip/utils"
+	"utils"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"log"
