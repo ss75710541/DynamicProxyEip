@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DynamicProxyEip/utils"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"log"
@@ -10,7 +11,7 @@ import (
 )
 // check tch port
 func checkTcpPort(address string) bool {
-	conn, err := net.DialTimeout("tcp", address, 1*time.Second)
+	conn, err := net.DialTimeout("tcp", address, 5*time.Second)
 	if err != nil {
 		fmt.Println("could not connect to server: ", err)
 		return false
@@ -191,7 +192,7 @@ func main() {
 			defer releaseEip(allocationId, client)
 		} else {
 			// 可以连接端口，则返回，什么也不操作
-			fmt.Printf("Eip: %s 可以正常使用。\n",eip)
+			fmt.Printf("Eip: %s:%s 可以正常连接。\n",eip, check_port)
 			return
 		}
 	}
@@ -219,5 +220,9 @@ func main() {
 		return
 	}
 	fmt.Printf("绑定 eip %s 到实例 %s\n", eip, instanceId)
+	smtpTo := os.Getenv("SMTP_TO")
 
+	if smtpTo != "" {
+		utils.SendMail("代理EIP替换为: "+eip,"代理EIP替换为: "+eip)
+	}
 }
