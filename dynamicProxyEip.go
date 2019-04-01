@@ -109,6 +109,7 @@ func allocateNewEip(err error, client *vpc.Client) (string,string) {
 	request := vpc.CreateAllocateEipAddressRequest()
 	request.AutoPay = "true"
 	request.Bandwidth = "2"
+	request.InternetChargeType = "PayByTraffic"
 	response, err := client.AllocateEipAddress(request)
 	if err != nil {
 		fmt.Print(err.Error())
