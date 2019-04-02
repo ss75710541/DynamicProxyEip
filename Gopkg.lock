@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:893a288df034379993c6d60780ecfbccf29cfe2ab18e67c7dfe4215e0b3cfb65"
+  digest = "1:6aad43233d080a5d9b7ce2c36bedfc458cd4648c494d60f416e535cc051afcd1"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
     "sdk",
@@ -18,8 +18,8 @@
     "services/vpc",
   ]
   pruneopts = "UT"
-  revision = "0ecf95d747640592113a26a2dd0cd9b55c5f997b"
-  version = "1.53.63"
+  revision = "6e358769c32a85804dc3d4e6c8c14875338aa97a"
+  version = "1.53.85"
 
 [[projects]]
   digest = "1:b87714e57a511d88f307aba7d5b63522da12bed0a050889c81272fc50f71100e"

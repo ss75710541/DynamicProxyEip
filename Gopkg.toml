@@ -29,10 +29,6 @@
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   version = "1.53.63"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/sparrc/go-ping"
-
 [prune]
   go-tests = true
   unused-packages = true
