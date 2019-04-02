@@ -11,20 +11,23 @@ import (
 )
 // check tch port
 func checkTcpPort(address string) bool {
-
 	var conn net.Conn
 	var err error
 
 	for i:=0; i<3; i++ {
-		conn, err = net.DialTimeout("tcp", address, 5*time.Second)
-		if err == nil{
-			return true
+		conn, err = net.DialTimeout("tcp", address, 3*time.Second)
+		if err != nil{
+			fmt.Println("could not connect to server: ", err)
 		}
 		time.Sleep(1*time.Second)
 	}
-	fmt.Println("could not connect to server: ", err)
+
+	if err != nil{
+		return false
+	}
+
 	defer conn.Close()
-	return false
+	return true
 }
 //根据实例id获取Eip
 func getEip(err error, client *vpc.Client, instanceId string)  (string,string) {
