@@ -18,6 +18,8 @@ SMTP_USER|smtp用户
 SMTP_PASSWORD|smtp密码
 SMTP_HOST|smtp服务器地址
 SMTP_TO|收件箱，多个使用;隔开
+GODADDY_KEY| godaddy api key
+GODADDY_SECRET| godaddy api 密钥
 
 ## 运行命令
 
@@ -25,7 +27,7 @@ SMTP_TO|收件箱，多个使用;隔开
 docker run -e REGION_ID=<regionId> -e  ACCESS_KEY_ID=<accessKeyId> -e ACCESS_KEY_SECRET= <accessKeySecret> -e INSTANCE_ID=<instanceId> -e CHECK_PORT=<check_port> dynamic-proxy-eip:latest
 ```
 
-## 发布到k8s定时任务
+## 发布到k8s定时任务示例
 
 ```
 apiVersion: batch/v1beta1
@@ -59,6 +61,16 @@ spec:
                   value: "<instanceId>"
                 - name: CHECK_PORT
                   value: "<checkPort>"
+                - name: GODADDY_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: access-key
+                      key: godaddyKey
+                - name: GODADDY_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: access-key
+                      key: godaddySecret
           restartPolicy: OnFailure
 
 ```

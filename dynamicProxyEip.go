@@ -174,6 +174,7 @@ func getDomainRecord() string {
 
 
 	req.Header.Set("Authorization", os.ExpandEnv("sso-key ${GODADDY_KEY}:${GODADDY_SECRET}"))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 
@@ -194,7 +195,7 @@ func getDomainRecord() string {
 
 	var Msg []map[string]string
 	json.Unmarshal([]byte(bodyBytes), &Msg)
-	fmt.Printf("devopsproxy.servicehub.services 解析信息：%s",Msg)
+	fmt.Printf("devopsproxy.servicehub.services 解析信息：%s\n",Msg)
 
 	return Msg[0]["data"]
 }
@@ -205,19 +206,43 @@ func updateDomainRecord(eip string){
 	domain := "servicehub.services"
 	name := "devopsproxy"
 
-	body := `[{"data": eip, "ttl": 600 }]`
+	body := fmt.Sprintf(`[{"data": "%s", "ttl": 600 }]`,eip)
+	fmt.Println(body)
 
 	req, err := http.NewRequest("PUT",
 		"https://" + apiHost + "/v1/domains/"+domain+"/records/A/"+name,
 		bytes.NewBuffer([]byte(body)))
 
+
 	if err != nil {
-		fmt.Printf("更新 devopsproxy.servicehub.services %s 解析异常\n", eip)
-		fmt.Printf(err.Error())
+		fmt.Println(err.Error())
 		panic(1)
 	}
-	fmt.Printf("更新 devopsproxy.servicehub.services %s 解析成功!\n", eip)
-	defer req.Body.Close()
+
+
+	req.Header.Set("Authorization", os.ExpandEnv("sso-key ${GODADDY_KEY}:${GODADDY_SECRET}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err2 := http.DefaultClient.Do(req)
+
+	if err2 != nil {
+		fmt.Println(err2.Error())
+		panic(1)
+	}
+
+
+	bodyBytes, err3 := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+
+	if err3 != nil {
+		fmt.Println(err3.Error())
+		panic(1)
+	}
+
+
+	fmt.Printf("更新 devopsproxy.servicehub.services %s 解析成功!\n", string(bodyBytes))
+	defer resp.Body.Close()
 
 }
 
@@ -280,7 +305,7 @@ func main() {
 			// 获取解析信息
 			eip2 := getDomainRecord()
 			if eip != eip2 {
-				fmt.Println("Eip解析不同步，更新解析记录")
+				fmt.Println("Eip解析不同步，更新解析记录\n")
 				updateDomainRecord(eip)
 			}
 			return
