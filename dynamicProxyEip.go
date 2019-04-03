@@ -2,10 +2,14 @@ package main
 
 import (
 	"DynamicProxyEip/utils"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
+	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"time"
 )
@@ -19,7 +23,7 @@ func checkTcpPort(address string) bool {
 		if err != nil{
 			fmt.Println("could not connect to server: ", err)
 		}
-		time.Sleep(1*time.Second)
+		time.Sleep(5*time.Second)
 	}
 
 	if err != nil{
@@ -147,6 +151,76 @@ func releaseEip(allocationId string, client *vpc.Client) {
 	fmt.Printf("释放eip失败,allocationId: %s", allocationId)
 }
 
+type Record struct {
+	data string
+	name string
+	ttl int32
+	recordType string
+}
+
+func getDomainRecord() string {
+	apiHost := "api.godaddy.com"
+	domain := "servicehub.services"
+	name := "devopsproxy"
+
+	req, err := http.NewRequest("GET",
+		"https://" + apiHost + "/v1/domains/"+domain+"/records/A/"+name,
+		nil)
+
+	if err != nil {
+		fmt.Println(err)
+		panic(1)
+	}
+
+
+	req.Header.Set("Authorization", os.ExpandEnv("sso-key ${GODADDY_KEY}:${GODADDY_SECRET}"))
+
+	resp, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		// handle err
+		fmt.Printf("%s", err)
+	}
+
+
+	bodyBytes, err2 := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+
+	if err2 != nil {
+		fmt.Printf("%s", err2)
+	}
+
+
+	var Msg []map[string]string
+	json.Unmarshal([]byte(bodyBytes), &Msg)
+	fmt.Printf("devopsproxy.servicehub.services 解析信息：%s",Msg)
+
+	return Msg[0]["data"]
+}
+
+func updateDomainRecord(eip string){
+
+	apiHost := "api.godaddy.com"
+	domain := "servicehub.services"
+	name := "devopsproxy"
+
+	body := `[{"data": eip, "ttl": 600 }]`
+
+	req, err := http.NewRequest("PUT",
+		"https://" + apiHost + "/v1/domains/"+domain+"/records/A/"+name,
+		bytes.NewBuffer([]byte(body)))
+
+	if err != nil {
+		fmt.Printf("更新 devopsproxy.servicehub.services %s 解析异常\n", eip)
+		fmt.Printf(err.Error())
+		panic(1)
+	}
+	fmt.Printf("更新 devopsproxy.servicehub.services %s 解析成功!\n", eip)
+	defer req.Body.Close()
+
+}
+
 func main() {
 
 	regionId := os.Getenv("REGION_ID")
@@ -203,6 +277,12 @@ func main() {
 		} else {
 			// 可以连接端口，则返回，什么也不操作
 			fmt.Printf("Eip: %s:%s 可以正常连接。\n",eip, check_port)
+			// 获取解析信息
+			eip2 := getDomainRecord()
+			if eip != eip2 {
+				fmt.Println("Eip解析不同步，更新解析记录")
+				updateDomainRecord(eip)
+			}
 			return
 		}
 	}
@@ -230,8 +310,13 @@ func main() {
 		return
 	}
 	fmt.Printf("绑定 eip %s 到实例 %s\n", eip, instanceId)
-	smtpTo := os.Getenv("SMTP_TO")
 
+	// 更新解析ip
+	updateDomainRecord(eip)
+	// 获取解析信息
+	getDomainRecord()
+
+	smtpTo := os.Getenv("SMTP_TO")
 	if smtpTo != "" {
 		utils.SendMail("代理EIP替换为: "+eip,"代理EIP替换为: "+eip)
 	}
