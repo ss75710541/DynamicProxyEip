@@ -24,7 +24,7 @@ GODADDY_SECRET| godaddy api 密钥
 ## 运行命令
 
 ```
-docker run -e REGION_ID=<regionId> -e  ACCESS_KEY_ID=<accessKeyId> -e ACCESS_KEY_SECRET= <accessKeySecret> -e INSTANCE_ID=<instanceId> -e CHECK_PORT=<check_port> dynamic-proxy-eip:latest
+docker run -e REGION_ID=<regionId> -e  ACCESS_KEY_ID=<accessKeyId> -e ACCESS_KEY_SECRET= <accessKeySecret> -e INSTANCE_ID=<instanceId> -e CHECK_PORT=<check_port> -e GODADDY_KEY=<godaddyKey> -e GODADDY_SECRET="godaddySecret" dynamic-proxy-eip:latest
 ```
 
 ## 发布到k8s定时任务示例
