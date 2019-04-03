@@ -36,14 +36,15 @@ metadata:
   name: dynamic-proxy-eip
   namespace: dynamic-proxy-eip
 spec:
-  schedule: '*/2 * * * *'
+  startingDeadlineSeconds: 60
+  schedule: '*/5 * * * *'
   jobTemplate:
     spec:
       template:
         spec:
           containers:
             - name: dynamic-proxy-eip
-              image: ss75710541/dynamic-proxy-eip:v0.5
+              image: ss75710541/dynamic-proxy-eip:latest
               env:
                 - name: REGION_ID
                   value: "<regionId>"
