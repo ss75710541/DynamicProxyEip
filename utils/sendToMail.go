@@ -8,21 +8,23 @@ import (
 	"strings"
 )
 
+
+// SendToMail 发送邮件
 func SendToMail(user, password, host, to, subject, body, mailtype string) error {
 	hp := strings.Split(host, ":")
 	auth := smtp.PlainAuth("", user, password, hp[0])
-	var content_type string
+	var contentType string
 	if mailtype == "html" {
-		content_type = "Content-Type: text/" + mailtype + "; charset=UTF-8"
+		contentType = "Content-Type: text/" + mailtype + "; charset=UTF-8"
 	} else {
-		content_type = "Content-Type: text/plain" + "; charset=UTF-8"
+		contentType = "Content-Type: text/plain" + "; charset=UTF-8"
 	}
-	msg := []byte("To: " + to + "\r\nFrom: " + user + "\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
-	send_to := strings.Split(to, ";")
-	err := smtp.SendMail(host, auth, user, send_to, msg)
+	msg := []byte("To: " + to + "\r\nFrom: " + user + "\r\nSubject: " + subject + "\r\n" + contentType + "\r\n\r\n" + body)
+	sendTos := strings.Split(to, ";")
+	err := smtp.SendMail(host, auth, user, sendTos, msg)
 	return err
 }
-
+// SendMail 简化后的发送邮件
 func SendMail(subject string, body string) {
 
 	user := os.Getenv("SMTP_USER")

@@ -13,8 +13,8 @@ import (
 	"os"
 	"time"
 )
-// check tch port
-func checkTcpPort(address string) bool {
+// check TCP Port
+func checkTCPPort(address string) bool {
 	var conn net.Conn
 	var err error
 
@@ -85,10 +85,10 @@ func unassociateEip(allocationId string, instanceId string, client *vpc.Client) 
 			}
 			fmt.Printf("解绑eip失败: %s", response)
 			return err
-		}else {
-			fmt.Printf("解绑eip成功，allocationId:  %s\n", allocationId)
-			return err
 		}
+
+		fmt.Printf("解绑eip成功，allocationId:  %s\n", allocationId)
+		return nil
 
 	}
 
@@ -111,10 +111,9 @@ func associateEip(allocationId string, instanceId string, client *vpc.Client) er
 			}
 			fmt.Printf("绑定eip失败: %s", response)
 			return err
-		}else {
-			fmt.Printf("绑定eip成功，allocationId:  %s\n", allocationId)
-			return err
 		}
+		fmt.Printf("绑定eip成功，allocationId:  %s\n", allocationId)
+		return nil
 	}
 }
 //申请分配Eip
@@ -150,7 +149,7 @@ func releaseEip(allocationId string, client *vpc.Client) {
 
 	fmt.Printf("释放eip失败,allocationId: %s", allocationId)
 }
-
+// Record 解析记录结构体
 type Record struct {
 	data string
 	name string
@@ -252,7 +251,7 @@ func main() {
 	accessKeyId := os.Getenv("ACCESS_KEY_ID")
 	accessKeySecret := os.Getenv("ACCESS_KEY_SECRET")
 	instanceId := os.Getenv("INSTANCE_ID")
-	check_port := os.Getenv("CHECK_PORT")
+	checkPort := os.Getenv("CHECK_PORT")
 
 	if regionId == "" {
 		log.Println("环境变量 REGION_ID 不能为空！")
@@ -274,7 +273,7 @@ func main() {
 		panic(1)
 		return
 	}
-	if check_port == "" {
+	if checkPort == "" {
 		log.Println("环境变量 CHECK_PORT 不能为空！")
 		panic(1)
 		return
@@ -289,8 +288,8 @@ func main() {
 		fmt.Println("Eip: ", eip)
 		fmt.Println("AllocationId: ", allocationId)
 
-		if !checkTcpPort(eip+":"+check_port) {
-			log.Println("连接", eip ,check_port,"失败！")
+		if !checkTCPPort(eip+":"+checkPort) {
+			log.Println("连接", eip ,checkPort,"失败！")
 			// 需要开启容器特权，所以注释ping功能
 			//不能连接tcp端口，则解绑eip,并释放
 			err = unassociateEip(allocationId, instanceId, client)
@@ -301,7 +300,7 @@ func main() {
 			defer releaseEip(allocationId, client)
 		} else {
 			// 可以连接端口，则返回，什么也不操作
-			fmt.Printf("Eip: %s:%s 可以正常连接。\n",eip, check_port)
+			fmt.Printf("Eip: %s:%s 可以正常连接。\n",eip, checkPort)
 			// 获取解析信息
 			eip2 := getDomainRecord()
 			if eip != eip2 {
