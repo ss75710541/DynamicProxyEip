@@ -135,19 +135,23 @@ func releaseEip(allocationId string, client *vpc.Client) {
 	request := vpc.CreateReleaseEipAddressRequest()
 	request.AllocationId = allocationId
 
+	var err error
 	for i:=0;i<5;i++ {
-		response, err := client.ReleaseEipAddress(request)
-		if response.RequestId == ""  {
+		var response *vpc.ReleaseEipAddressResponse
+		response, err = client.ReleaseEipAddress(request)
+
+		if !response.IsSuccess()  {
 			i++
-			time.Sleep(time.Second)
+			time.Sleep(2*time.Second)
 			fmt.Printf("释放eip异常,需要重试: %s\n", err.Error())
+			fmt.Printf(response.String() )
 			continue
 		}
 		fmt.Printf("释放eip成功,allocationId:  %s\n",  allocationId)
 		return
 	}
 
-	fmt.Printf("释放eip失败,allocationId: %s", allocationId)
+	fmt.Printf("释放eip失败,allocationId: %s , error: ", allocationId, err)
 }
 // Record 解析记录结构体
 type Record struct {
@@ -291,13 +295,14 @@ func main() {
 		if !checkTCPPort(eip+":"+checkPort) {
 			log.Println("连接", eip ,checkPort,"失败！")
 			// 需要开启容器特权，所以注释ping功能
-			//不能连接tcp端口，则解绑eip,并释放
+			//不能连接tcp端口，则解绑eip
 			err = unassociateEip(allocationId, instanceId, client)
 			if err != nil {
 				return
 			}
 			time.Sleep(time.Second)
-			defer releaseEip(allocationId, client)
+			// 释放eip
+			releaseEip(allocationId, client)
 		} else {
 			// 可以连接端口，则返回，什么也不操作
 			fmt.Printf("Eip: %s:%s 可以正常连接。\n",eip, checkPort)

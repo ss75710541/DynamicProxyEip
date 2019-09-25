@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/smtp"
 	"os"
+	"runtime/debug"
 	"strings"
 )
 
@@ -36,22 +37,18 @@ func SendMail(subject string, body string) {
 	err := SendToMail(user, password, host, to, subject, body, "")
 
 	if err != nil {
-		log.Panic(err)
+		log.Println(err.Error())
+		log.Println(string(debug.Stack()))
 	}else{
 		log.Println("Send mail success")
 	}
 }
 
 //func main() {
-//	to := "liujinye@hisuntech.com"
 //	subject := "test Golang to sendmail"
 //	body := "11"
 //	fmt.Println("send email")
-//	err := SendToMail(user, password, host, to, subject, body, "")
 //
-//	if err != nil {
-//		log.Panic(err)
-//	}else{
-//		log.Println("Send mail success")
-//	}
+//	SendMail(subject, body)
+//
 //}
