@@ -20,6 +20,9 @@ SMTP_HOST|smtp服务器地址
 SMTP_TO|收件箱，多个使用;隔开
 GODADDY_KEY| godaddy api key
 GODADDY_SECRET| godaddy api 密钥
+GODADDY_API_HOST| goadddy api 地址
+GODADDY_DOMAIN|域名domain
+GODADDY_DNS_NAME|域名解析名称
 
 ## 运行命令
 
@@ -46,6 +49,12 @@ spec:
             - name: dynamic-proxy-eip
               image: ss75710541/dynamic-proxy-eip:latest
               env:
+                - name: GODADDY_API_HOST
+                  value: "<GODADDY_API_HOST>"
+                - name: GODADDY_DOMAIN
+                  value: "<GODADDY_DOMAIN>"
+                - name: GODADDY_DNS_NAME
+                  value: "<GODADDY_DNS_NAME>"
                 - name: REGION_ID
                   value: "<regionId>"
                 - name: ACCESS_KEY_ID

@@ -13,6 +13,13 @@ import (
 	"os"
 	"time"
 )
+
+var (
+	GODADDY_API_HOST string
+	GODADDY_DOMAIN string
+	GODADDY_DNS_NAME string
+)
+
 // check TCP Port
 func checkTCPPort(address string) bool {
 	var conn net.Conn
@@ -162,12 +169,9 @@ type Record struct {
 }
 
 func getDomainRecord() string {
-	apiHost := "api.godaddy.com"
-	domain := "servicehub.services"
-	name := "devopsproxy"
 
 	req, err := http.NewRequest("GET",
-		"https://" + apiHost + "/v1/domains/"+domain+"/records/A/"+name,
+		"https://" + GODADDY_API_HOST + "/v1/domains/"+GODADDY_DOMAIN+"/records/A/"+GODADDY_DNS_NAME,
 		nil)
 
 	if err != nil {
@@ -198,22 +202,17 @@ func getDomainRecord() string {
 
 	var Msg []map[string]string
 	json.Unmarshal([]byte(bodyBytes), &Msg)
-	fmt.Printf("devopsproxy.servicehub.services 解析信息：%s\n",Msg)
+	fmt.Printf("%s.%s 解析信息：%s\n",GODADDY_DNS_NAME, GODADDY_DOMAIN ,Msg)
 
 	return Msg[0]["data"]
 }
 
 func updateDomainRecord(eip string){
-
-	apiHost := "api.godaddy.com"
-	domain := "servicehub.services"
-	name := "devopsproxy"
-
 	body := fmt.Sprintf(`[{"data": "%s", "ttl": 600 }]`,eip)
 	fmt.Println(body)
 
 	req, err := http.NewRequest("PUT",
-		"https://" + apiHost + "/v1/domains/"+domain+"/records/A/"+name,
+		"https://" + GODADDY_API_HOST + "/v1/domains/"+GODADDY_DOMAIN+"/records/A/"+GODADDY_DNS_NAME,
 		bytes.NewBuffer([]byte(body)))
 
 
@@ -244,7 +243,7 @@ func updateDomainRecord(eip string){
 	}
 
 
-	fmt.Printf("更新 devopsproxy.servicehub.services %s 解析成功!\n", string(bodyBytes))
+	fmt.Printf("更新 %s.%s %s 解析成功!\n",GODADDY_DNS_NAME, GODADDY_DOMAIN, string(bodyBytes))
 	defer resp.Body.Close()
 
 }
@@ -257,30 +256,35 @@ func main() {
 	instanceId := os.Getenv("INSTANCE_ID")
 	checkPort := os.Getenv("CHECK_PORT")
 
+	GODADDY_API_HOST = os.Getenv("GODADDY_API_HOST")
+	GODADDY_DOMAIN   = os.Getenv("GODADDY_DOMAIN")
+	GODADDY_DNS_NAME = os.Getenv("GODADDY_DNS_NAME")
+
+
+	if GODADDY_API_HOST == "" {
+		log.Fatal("环境变量 GODADDY_API_HOST 不能为空！")
+	}
+	if GODADDY_DOMAIN == "" {
+		log.Fatal("环境变量 GODADDY_DOMAIN 不能为空！")
+	}
+	if GODADDY_DNS_NAME == "" {
+		log.Fatal("环境变量 GODADDY_DNS_NAME 不能为空！")
+	}
+
 	if regionId == "" {
-		log.Println("环境变量 REGION_ID 不能为空！")
-		panic(1)
-		return
+		log.Fatal("环境变量 REGION_ID 不能为空！")
 	}
 	if accessKeyId == "" {
-		log.Println("环境变量 ACCESS_KEY_ID 不能为空！")
-		panic(1)
-		return
+		log.Fatal("环境变量 ACCESS_KEY_ID 不能为空！")
 	}
 	if accessKeySecret == "" {
-		log.Println("环境变量 ACCESS_KEY_SECRET 不能为空！")
-		panic(1)
-		return
+		log.Fatal("环境变量 ACCESS_KEY_SECRET 不能为空！")
 	}
 	if instanceId == "" {
-		log.Println("环境变量 INSTANCE_ID 不能为空！")
-		panic(1)
-		return
+		log.Fatal("环境变量 INSTANCE_ID 不能为空！")
 	}
 	if checkPort == "" {
-		log.Println("环境变量 CHECK_PORT 不能为空！")
-		panic(1)
-		return
+		log.Fatal("环境变量 CHECK_PORT 不能为空！")
 	}
 	client, err := vpc.NewClientWithAccessKey(regionId, accessKeyId, accessKeySecret)
 
