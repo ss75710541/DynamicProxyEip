@@ -85,7 +85,7 @@ func unassociateEip(allocationId string, instanceId string, client *vpc.Client) 
 		response, err := client.UnassociateEipAddress(request)
 
 		if err != nil {
-			if i < 4 {
+			if i < 10 {
 				i++
 				time.Sleep(1*time.Second)
 				continue
@@ -111,7 +111,7 @@ func associateEip(allocationId string, instanceId string, client *vpc.Client) er
 	for {
 		response, err := client.AssociateEipAddress(request)
 		if err != nil {
-			if i < 4 {
+			if i < 10 {
 				i++
 				time.Sleep(1*time.Second)
 				continue
@@ -137,13 +137,14 @@ func allocateNewEip(err error, client *vpc.Client) (string,string) {
 	allocationId := response.AllocationId
 	return eip,allocationId
 }
+
 // 释放Eip
 func releaseEip(allocationId string, client *vpc.Client) {
 	request := vpc.CreateReleaseEipAddressRequest()
 	request.AllocationId = allocationId
 
 	var err error
-	for i:=0;i<5;i++ {
+	for i:=0;i<10;i++ {
 		var response *vpc.ReleaseEipAddressResponse
 		response, err = client.ReleaseEipAddress(request)
 
