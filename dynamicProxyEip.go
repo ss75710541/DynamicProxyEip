@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -249,6 +250,18 @@ func updateDomainRecord(eip string){
 
 }
 
+func checkSSStatus(ssStatusUrl string){
+	body,err := utils.HttpRequestExec("GET", ssStatusUrl,nil, "","")
+	if err != nil{
+		log.Fatalf("get %s err: %v", ssStatusUrl, err)
+	}
+
+	retStr := string(body)
+	if strings.TrimSpace(retStr) != "0" {
+		log.Fatalf("get %s is %v", ssStatusUrl, retStr)
+	}
+}
+
 func main() {
 
 	regionId := os.Getenv("REGION_ID")
@@ -256,6 +269,8 @@ func main() {
 	accessKeySecret := os.Getenv("ACCESS_KEY_SECRET")
 	instanceId := os.Getenv("INSTANCE_ID")
 	checkPort := os.Getenv("CHECK_PORT")
+
+	SS_STATUS_URL := os.Getenv("SS_STATUS_URL")
 
 	GODADDY_API_HOST = os.Getenv("GODADDY_API_HOST")
 	GODADDY_DOMAIN   = os.Getenv("GODADDY_DOMAIN")
@@ -287,6 +302,12 @@ func main() {
 	if checkPort == "" {
 		log.Fatal("环境变量 CHECK_PORT 不能为空！")
 	}
+
+	//检查 ss 服务是否运行
+	if SS_STATUS_URL != "" {
+		checkSSStatus(SS_STATUS_URL)
+	}
+
 	client, err := vpc.NewClientWithAccessKey(regionId, accessKeyId, accessKeySecret)
 
 	eip,allocationId := getEip(err, client,instanceId)
