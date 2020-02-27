@@ -250,6 +250,7 @@ func updateDomainRecord(eip string){
 
 }
 
+// 检查自定义ss状态页
 func checkSSStatus(ssStatusUrl string){
 	body,err := utils.HttpRequestExec("GET", ssStatusUrl,nil, "","")
 	if err != nil{
@@ -260,6 +261,8 @@ func checkSSStatus(ssStatusUrl string){
 	if strings.TrimSpace(retStr) != "0" {
 		log.Fatalf("get %s is %v", ssStatusUrl, retStr)
 	}
+
+	fmt.Printf("get %s is %v\n", ssStatusUrl, retStr)
 }
 
 func main() {
@@ -269,8 +272,7 @@ func main() {
 	accessKeySecret := os.Getenv("ACCESS_KEY_SECRET")
 	instanceId := os.Getenv("INSTANCE_ID")
 	checkPort := os.Getenv("CHECK_PORT")
-
-	SS_STATUS_URL := os.Getenv("SS_STATUS_URL")
+	isCheckSSStatus := os.Getenv("IS_CHECK_SS_STATUS")
 
 	GODADDY_API_HOST = os.Getenv("GODADDY_API_HOST")
 	GODADDY_DOMAIN   = os.Getenv("GODADDY_DOMAIN")
@@ -303,11 +305,6 @@ func main() {
 		log.Fatal("环境变量 CHECK_PORT 不能为空！")
 	}
 
-	//检查 ss 服务是否运行
-	if SS_STATUS_URL != "" {
-		checkSSStatus(SS_STATUS_URL)
-	}
-
 	client, err := vpc.NewClientWithAccessKey(regionId, accessKeyId, accessKeySecret)
 
 	eip,allocationId := getEip(err, client,instanceId)
@@ -317,6 +314,13 @@ func main() {
 		//绑定了eip 则检查连通性
 		fmt.Println("Eip: ", eip)
 		fmt.Println("AllocationId: ", allocationId)
+
+
+		if isCheckSSStatus == "true" {
+			// 通过自定义的ss状态页检查ss是否启动状态
+			url:= fmt.Sprintf("http://%s:8100/status.txt", eip)
+			checkSSStatus(url)
+		}
 
 		if !checkTCPPort(eip+":"+checkPort) {
 			log.Println("连接", eip ,checkPort,"失败！")
