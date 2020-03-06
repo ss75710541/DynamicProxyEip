@@ -254,7 +254,8 @@ func updateDomainRecord(eip string){
 func checkSSStatus(ssStatusUrl string){
 	body,err := utils.HttpRequestExec("GET", ssStatusUrl,nil, "","")
 	if err != nil{
-		log.Fatalf("get %s err: %v", ssStatusUrl, err)
+		log.Printf("get %s err: %v", ssStatusUrl, err)
+		return
 	}
 
 	retStr := string(body)
